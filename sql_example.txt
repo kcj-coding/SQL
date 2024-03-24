@@ -1,0 +1,28 @@
+SELECT c.first_name, c.age, o.order_id, -- SELECT * for all, SELECT DISTINCT for unique
+
+-- get total age by condition as subquery
+(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS tot_age,
+
+-- get decimal percentage as subquery
+CAST(age/(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS DECIMAL(10,2)) as pct,
+
+-- cumulative age by row
+SUM(age) OVER(ORDER BY c.customer_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_age
+
+FROM Customers c
+
+JOIN Orders o ON o.customer_id = c.customer_id
+
+JOIN Shippings s ON s.customer = c.customer_id
+
+WHERE country = (SELECT country from Customers WHERE country = 'UK')
+
+AND c.first_name LIKE '%J%'
+
+AND
+-- filter by tot_age as subquery
+(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) < 50
+
+AND LOWER(s.status) = 'pending'
+
+ORDER BY o.order_id ASC --DESC
