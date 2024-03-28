@@ -1,4 +1,4 @@
--- The correct SQL operation order is SELECT FROM (and JOIN), WHERE, GROUP BY, HAVING and ORDER BY
+-- The correct SQL operation order is FROM (and JOIN), WHERE, GROUP BY, HAVING, SELECT and ORDER BY
 -- The HAVING clause was added to SQL because the WHERE keyword cannot be used with aggregate functions. To use HAVING it must be preceeded by a GROUP BY clause
 
 SELECT c.first_name, c.age, o.order_id, -- SELECT * for all, SELECT DISTINCT for unique
@@ -22,11 +22,19 @@ JOIN Shippings s ON s.customer = c.customer_id
 
 WHERE country = (SELECT country from Customers WHERE country = 'UK')
 
-AND c.first_name LIKE '%J%'
+-- in some SQL verisons, GLOB may be needed for certain operations instead of REGEXP
+-- WHERE c.first_name GLOB '*[^0-9]*' -- where first_name does not contain any standalone numbers
+-- WHERE c.first_name NOT GLOB '*[^a-zA-Z0-9]*' -- where first_name is standalone characters or numbers only e.g. characters and numbers are not joined together
+-- WHERE CAST(c.first_name AS VARCHAR) GLOB '*[0-9]*' -- where first_name contains standalone numbers or numbers and text
+-- WHERE c.first_name GLOB '*[J]*' -- where first_name contains J
 
-AND
+-- AND c.first_name REGEXP '%[^a-zA-Z0-9]%' -- where first name contains characters and numbers
+
+AND c.first_name LIKE '%J%' -- where first_name contains J
+
+
 -- filter by tot_age as subquery
-(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) < 50
+AND (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) < 50
 
 AND LOWER(s.status) = 'pending'
 
