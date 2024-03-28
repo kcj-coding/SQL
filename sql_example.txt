@@ -5,6 +5,7 @@ SELECT c.first_name, c.age, o.order_id, -- SELECT * for all, SELECT DISTINCT for
 
 -- get total age by condition as subquery
 (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS tot_age,
+--(SELECT SUM(age) FROM Customers WHERE country IN ('UK', 'USA')) AS tot_age,
 
 -- get decimal percentage as subquery
 CAST(age/(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS DECIMAL(10,2)) as pct,
