@@ -27,11 +27,11 @@ WHERE country = (SELECT country from Customers WHERE country = 'UK')
 -- WHERE c.first_name GLOB '*[^0-9]*' -- where first_name does not contain any standalone numbers
 -- WHERE c.first_name NOT GLOB '*[^a-zA-Z0-9]*' -- where first_name is standalone characters or numbers only e.g. characters and numbers are not joined together
 -- WHERE CAST(c.first_name AS VARCHAR) GLOB '*[0-9]*' -- where first_name contains standalone numbers or numbers and text
--- WHERE LOWER(c.first_name) GLOB '*[j]*' -- where first_name contains J
+-- WHERE LOWER(c.first_name) GLOB '*[j]*' -- where first_name contains J -- LOWER to capture John, Alejandro
 
 -- AND c.first_name REGEXP '%[^a-zA-Z0-9]%' -- where first name contains characters and numbers
 
-AND LOWER(c.first_name) LIKE '%j%' -- where first_name contains J
+AND LOWER(c.first_name) LIKE '%j%' -- where first_name contains J -- LOWER to capture John, Alejandro
 
 
 -- filter by tot_age as subquery
