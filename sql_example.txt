@@ -4,11 +4,11 @@
 SELECT c.first_name, c.age, o.order_id, -- SELECT * for all, SELECT DISTINCT for unique
 
 -- get total age by condition as subquery
-(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS tot_age,
+(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE customer_id IN (3,4))) AS tot_age,
 --(SELECT SUM(age) FROM Customers WHERE country IN ('UK', 'USA')) AS tot_age,
 
 -- get decimal percentage as subquery
-CAST(age/(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) AS DECIMAL(10,2)) as pct,
+CAST(age/(SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE customer_id IN (3,4))) AS DECIMAL(10,2)) as pct,
 
 -- cumulative age by row
 SUM(age) OVER(ORDER BY c.customer_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_age
@@ -21,7 +21,7 @@ JOIN Orders o ON o.customer_id = c.customer_id
 
 JOIN Shippings s ON s.customer = c.customer_id
 
-WHERE country = (SELECT country from Customers WHERE country = 'UK')
+WHERE country = (SELECT country from Customers WHERE customer_id IN (3,4)) -- 'UK'
 
 -- in some SQL verisons, GLOB may be needed for certain operations instead of REGEXP
 -- WHERE c.first_name GLOB '*[^0-9]*' -- where first_name does not contain any standalone numbers
@@ -35,7 +35,7 @@ AND LOWER(c.first_name) LIKE '%j%' -- where first_name contains J -- LOWER to ca
 
 
 -- filter by tot_age as subquery
-AND (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE country = 'UK')) < 50
+AND (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE customer_id IN (3,4))) < 50
 
 AND LOWER(s.status) = 'pending'
 
