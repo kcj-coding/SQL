@@ -1,7 +1,13 @@
 -- The correct SQL operation order is FROM (and JOIN), WHERE, GROUP BY, HAVING, SELECT and ORDER BY
 -- The HAVING clause was added to SQL because the WHERE keyword cannot be used with aggregate functions. To use HAVING it must be preceeded by a GROUP BY clause
 
+-- FACT tables expand vertically (more rows than columns, concatenated key) DIMENSION tables expand horizontally (more columns than rows, primary key)
+
+-- any SELECT of columns should be followed by a comma,
+
 SELECT c.first_name, c.age, o.order_id, -- SELECT * for all, SELECT DISTINCT for unique
+LEAD(c.first_name,1,"N/A") OVER(ORDER BY o.order_id) as next_first_name, -- window function to show next entry
+LAG(c.age,1,0) OVER(ORDER BY o.order_id) as prv_age, -- window function to show previous entry
 
 -- get total age by condition as subquery
 (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE customer_id IN (3,4))) AS tot_age,
@@ -44,3 +50,7 @@ GROUP BY o.order_id
 HAVING COUNT(c.first_name) >= 1 AND SUM(o.amount) > 200 -- AGGREGATE function needing HAVING as no result is stored in the data table (which could use WHERE if stored in data)
 
 ORDER BY o.order_id ASC --DESC
+
+-- You cannot join on unique primary key when selecting more than 1 row of returned rows from SELECTION, this will cause an error
+
+-- If specifying a type e.g. c.age as integer, age must be a number otherwise the execution of the query will error
