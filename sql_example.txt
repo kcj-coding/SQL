@@ -58,7 +58,7 @@ AND LOWER(s.status) = 'pending'
 GROUP BY o.order_id
 -- GROUP BY 3 -- as 3 is the column o.order_id
 
-HAVING COUNT(c.first_name) >= 1 AND SUM(o.amount) > 200 -- AGGREGATE function needing HAVING as no result is stored in the data table (which could use WHERE if stored in data)
+HAVING COUNT(c.first_name) >= 1 AND SUM(o.amount) > 200 -- AGGREGATE function needing HAVING as no result is stored in the data table (which could use WHERE if stored in data) and after a GROUP BY clause
 
 ORDER BY o.order_id ASC; --DESC
 
@@ -68,6 +68,7 @@ ORDER BY o.order_id ASC; --DESC
 
 -- TEMPORARY TABLE CREATION
 --IF OBJECT_ID('tempdb..TempTable') IS NOT NULL DROP TABLE TempTable;
+DROP TABLE IF EXISTS TempTable;
 --DROP TABLE TempTable; -- Delete TempTable if it exists to avoid error on execution
 
 CREATE TABLE TempTable(
