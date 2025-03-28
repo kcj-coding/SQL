@@ -12,6 +12,7 @@ WITH cte_table AS(SELECT item, amount, customer_id
                   FROM Orders)
                   
 SELECT c.first_name, c.age, o.order_id, cc.item,-- SELECT * for all, SELECT DISTINCT for unique
+-- SELECT *, CASE WHEN customer_id = 1 THEN 'ABC' ELSE 'DEF' END AS xyz -- to add on extra column to select all
 LEAD(c.first_name,1,"N/A") OVER(ORDER BY o.order_id) as next_first_name, -- window function to show next entry
 LAG(c.age,1,0) OVER(ORDER BY o.order_id) as prv_age, -- window function to show previous entry
 
