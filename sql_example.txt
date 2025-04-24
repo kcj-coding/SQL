@@ -16,6 +16,9 @@ SELECT c.first_name, c.age, o.order_id, cc.item,-- SELECT * for all, SELECT DIST
 LEAD(c.first_name,1,"N/A") OVER(ORDER BY o.order_id) as next_first_name, -- window function to show next entry
 LAG(c.age,1,0) OVER(ORDER BY o.order_id) as prv_age, -- window function to show previous entry
 
+-- partition by and over to calculate based on table sets (faster calculations)
+COUNT(c.first_name) OVER (PARTITION BY cc.item) as count_per_item, -- can also have empty over clause
+
 -- get total age by condition as subquery
 (SELECT SUM(age) FROM Customers WHERE country = (SELECT country FROM Customers WHERE customer_id IN (3,4))) AS tot_age,
 -- (SELECT SUM(age) FROM Customers WHERE country IN ('UK', 'USA')) AS tot_age,
