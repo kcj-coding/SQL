@@ -1,0 +1,67 @@
+--- drop function if exists
+IF object_id(N'fn_CheckNum', N'FN') IS NOT NULL
+    DROP FUNCTION fn_CheckNum
+GO
+
+-- function to check if number is even or odd
+CREATE FUNCTION dbo.fn_CheckNum
+(
+@Number INT
+)
+RETURNS VARCHAR (4)
+AS
+BEGIN
+	DECLARE @Result VARCHAR (4);
+
+	IF @Number % 2 = 0
+	BEGIN
+		SET @Result = 'Even';
+	END
+	ELSE
+	BEGIN
+		SET @Result = 'Odd';
+	END
+	RETURN @Result;
+END;
+GO
+
+DROP TABLE IF EXISTS #xyz;
+
+CREATE TABLE #xyz
+(name int);
+
+-- insert values manually
+INSERT INTO #xyz (name) VALUES (5)
+
+-- insert values in LOOP
+
+DECLARE @counter INT = 5
+
+WHILE @counter <= 10
+BEGIN
+	INSERT INTO #xyz (name)
+	VALUES (@counter)
+
+	SET @counter = @counter+1
+END;
+
+-- remove any duplicates
+WITH CTE AS (
+	SELECT name,
+	ROW_NUMBER() OVER (PARTITION BY name ORDER BY (SELECT NULL)) AS RowNum
+	FROM #xyz
+)
+DELETE FROM CTE WHERE RowNum > 1;
+
+-- use function to check if even or odd
+ALTER TABLE #xyz
+ADD checker VARCHAR(4) DEFAULT 0;
+
+UPDATE t
+SET t.checker = dbo.fn_CheckNum(t.name)
+FROM #xyz t;
+
+SELECT * FROM #xyz;
+
+DROP FUNCTION fn_CheckNum;
+DROP TABLE #xyz;

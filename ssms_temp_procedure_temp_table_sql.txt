@@ -1,0 +1,83 @@
+IF OBJECT_ID('tempdb..#CheckDayOfWeek', 'P') IS NOT NULL
+    DROP PROCEDURE #CheckDayOfWeek;
+GO
+
+-- create temporary procedure to check if day is odd or even
+CREATE PROCEDURE #CheckDayOfWeek (@TableName NVARCHAR(128), @DateColumn NVARCHAR(128))
+AS
+BEGIN
+    DECLARE @SQL NVARCHAR(MAX);
+    
+    -- Add a new column to store 'Odd' or 'Even' for the specified table
+    SET @SQL = 'IF NOT EXISTS (SELECT * FROM sys.columns 
+                       WHERE object_id = OBJECT_ID(''' + @TableName + ''') 
+                       AND name = ''DayType'') 
+        BEGIN 
+        ALTER TABLE ' + QUOTENAME(@TableName) + ' ADD DayType VARCHAR(10); 
+                END';EXEC sp_executesql @SQL;
+    
+    -- Update the DayType column based on whether the day of the week is odd or even
+    SET @SQL = '
+        UPDATE ' + QUOTENAME(@TableName) + '
+        SET DayType = 
+            CASE 
+                WHEN DATEPART(WEEKDAY, ' + QUOTENAME(@DateColumn) + ') % 2 = 0 THEN ''Even''
+                ELSE ''Odd''
+            END;';
+    
+    EXEC sp_executesql @SQL;
+END;
+GO
+
+DROP TABLE IF EXISTS #abc;
+
+CREATE TABLE #abc
+(
+ID INT IDENTITY(1,1) PRIMARY KEY,
+RandomText VARCHAR(50),
+RandomNumber1 INT NOT NULL,
+RandomNumber2 INT NOT NULL,
+dater DATETIME NOT NULL, -- or can be DATE
+nxt_date DATETIME NOT NULL
+);
+
+--ALTER TABLE #abc
+--ADD dater VARCHAR;
+
+--UPDATE #abc SET dater = '1900-01-01'
+
+DECLARE @i INT = 1;
+DECLARE @StartDate DATETIME = '2020-01-01';
+DECLARE @EndDate DATETIME = '2021-01-01';
+
+WHILE @i <= 100
+BEGIN
+	 INSERT INTO #abc (RandomText, RandomNumber1, RandomNumber2, dater, nxt_date)
+	 VALUES
+	 (
+	 LEFT(NEWID(),5),
+	 FLOOR(RAND()*100)+1,
+	 FLOOR(RAND()*100)+1,
+	 -- generate a random date between the two dates
+	 DATEADD(DAY, FLOOR(RAND()*DATEDIFF(DAY,@StartDate,@EndDate)),@StartDate),
+	 -- generate incremental date from StartDate
+	 DATEADD(DAY,@i,@StartDate)
+
+);
+
+SET @i=@i+1;
+END
+
+-- use the procedure - adds a column called DayType
+EXEC #CheckDayOfWeek @TableName = '#abc', @DateColumn = 'nxt_date';
+
+SELECT *, SUM(z.nxt_rnd_nm1) as sum_nxt_rnd_nm1
+FROM(
+SELECT *, LEAD(RandomNumber1,1,0) OVER(ORDER BY ID) AS nxt_rnd_nm1
+FROM #abc
+) z
+GROUP BY z.ID, z.RandomText, z.RandomNumber1, z.RandomNumber2, z.dater, z.nxt_date, z.DayType, z.nxt_rnd_nm1
+HAVING SUM(z.nxt_rnd_nm1) > 50
+
+DROP PROCEDURE #CheckDayOfWeek;
+DROP TABLE #abc
