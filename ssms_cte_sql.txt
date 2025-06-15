@@ -1,0 +1,86 @@
+----------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS #abc;
+
+CREATE TABLE #abc
+(
+ID INT IDENTITY(1,1) PRIMARY KEY, -- for each row increase amount by 1
+RandomText VARCHAR(50),
+RandomNumber1 INT NOT NULL,
+RandomNumber2 INT NOT NULL,
+dater DATETIME NOT NULL, -- or can be DATE
+nxt_date DATETIME NOT NULL
+);
+
+--ALTER TABLE #abc
+--ADD dater VARCHAR;
+
+--UPDATE #abc SET dater = '1900-01-01'
+
+-- LOOP to update values
+
+DECLARE @i INT = 1;
+DECLARE @StartDate DATETIME = '2020-01-01';
+DECLARE @EndDate DATETIME = '2021-01-01';
+
+WHILE @i <= 100
+BEGIN
+	 INSERT INTO #abc (RandomText, RandomNumber1, RandomNumber2, dater, nxt_date)
+	 VALUES
+	 (
+	 LEFT(NEWID(),5),
+	 FLOOR(RAND()*100)+1,
+	 FLOOR(RAND()*100)+1,
+	 -- generate a random date between the two dates
+	 DATEADD(DAY, FLOOR(RAND()*DATEDIFF(DAY,@StartDate,@EndDate)),@StartDate),
+	 -- generate incremental date from StartDate
+	 DATEADD(DAY,@i,@StartDate)
+
+);
+
+SET @i=@i+1;
+END;
+
+----------------------------------------------------------------------------------
+
+-- create new table of years and join on row ID to #abc renamed as first_table
+
+DROP TABLE IF EXISTS #years;
+
+CREATE TABLE #years
+(
+ID INT IDENTITY(1,15) PRIMARY KEY, -- for each row increase amount by 15
+years INT NOT NULL
+);
+
+--ALTER TABLE #abc
+--ADD dater VARCHAR;
+
+--UPDATE #abc SET dater = '1900-01-01'
+
+DECLARE @ii INT = 1;
+DECLARE @StartYear INT = 95;
+--DECLARE @EndYear INT = '2021-01-01';
+
+WHILE @ii <= 10
+BEGIN
+	 INSERT INTO #years (years)
+	 VALUES
+	 (
+	 @StartYear+@ii
+
+);
+
+SET @ii=@ii+1;
+END;
+
+----------------------------------------------------------------------------------
+
+-- name as CTEs
+WITH first_table AS (SELECT aa.ID, aa.RandomText FROM #abc aa),
+
+years AS (SELECT * FROM #years)
+
+-- join
+SELECT * FROM years yy
+LEFT JOIN first_table ft ON ft.ID = yy.ID
