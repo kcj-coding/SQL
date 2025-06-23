@@ -1,0 +1,51 @@
+DROP TABLE IF EXISTS #xyz;
+
+CREATE TABLE #xyz
+(name int);
+
+-- insert values manually
+INSERT INTO #xyz (name) VALUES (5)
+
+-- insert values in LOOP
+
+DECLARE @counter INT = 5
+
+WHILE @counter <= 10
+BEGIN
+	INSERT INTO #xyz (name)
+	VALUES (@counter)
+
+	SET @counter = @counter+1
+END;
+
+
+DROP TABLE IF EXISTS #abc;
+
+CREATE TABLE #abc
+(
+ID INT IDENTITY(1,1) PRIMARY KEY,
+RandomText VARCHAR(50),
+RandomNumber1 INT NOT NULL,
+RandomNumber2 INT NULL,
+dater DATETIME NULL, -- or can be DATE
+nxt_date DATETIME NULL
+);
+
+-- transaction processing
+
+BEGIN TRANSACTION
+INSERT INTO #abc(RandomText, RandomNumber1)
+VALUES('abc',1)
+SAVE TRANSACTION StartSeq;
+INSERT INTO #xyz(name)
+VALUES(5)
+IF @@ERROR <> 0 ROLLBACK TRANSACTION StartSeq
+-- insert all values from #xyz into #abc where specified
+-- if there is an error revert back to StartSeq
+INSERT INTO #abc(RandomNumber1)
+SELECT name FROM #xyz
+IF @@ERROR <> 0 ROLLBACK TRANSACTION StartSeq
+COMMIT TRANSACTION
+
+-- view the table
+SELECT * FROM #abc
