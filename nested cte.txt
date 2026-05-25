@@ -1,0 +1,19 @@
+-- COMMON TABLE EXPRESSION CTE better performance than subqueries
+WITH cte_table (item, amount, customer_id, chk) AS (SELECT item, amount, customer_id
+                  CASE WHEN amount <= 10 THEN 'abc'
+                  WHEN amount > 10 AND AMOUNT <= 100 THEN 'def'
+                  ELSE 'xyz' END AS chk
+                  FROM Orders),
+
+-- then group by
+abc_table AS (
+SELECT item, amount, customer_id, chk, COUNT(chk) as 'count', CAST(COUNT(chk)*100/SUM(COUNT(chk)) OVER (PARTITION BY item) AS DECIMAL(5,2)) as pct
+FROM cte_table
+GROUP BY item
+)
+
+-- then use grouped results for e.g reporting by filtering what is wanted
+SELECT *
+FROM abc_table
+WHERE chk = 'abc'
+ORDER BY item
