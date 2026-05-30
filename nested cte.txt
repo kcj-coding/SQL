@@ -7,7 +7,7 @@ WITH cte_table (item, amount, customer_id, chk) AS (SELECT item, amount, custome
 
 -- then group by
 abc_table AS (
-SELECT item, amount, customer_id, chk, COUNT(chk) as 'count', CAST(COUNT(chk)*100/SUM(COUNT(chk)) OVER (PARTITION BY item) AS DECIMAL(5,2)) as pct
+SELECT item, amount, customer_id, chk, COUNT(chk) as 'count', CAST(COUNT(chk)*100/SUM(COUNT(chk)) OVER (PARTITION BY item) AS DECIMAL(5,2)) as pct, LEN(CAST(FLOOR(ABS(amount))) AS VARCHAR)) AS WholeNumberDigits
 FROM cte_table
 GROUP BY item
 )
