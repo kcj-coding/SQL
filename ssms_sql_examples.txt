@@ -1,0 +1,140 @@
+----------------------------------------------------------------------------------
+-- create new table #abc
+DROP TABLE IF EXISTS #abc;
+
+CREATE TABLE #abc
+(
+ID INT IDENTITY(1,1) PRIMARY KEY, -- for each row increase amount by 1
+RandomText VARCHAR(50),
+RandomNumber1 INT NOT NULL,
+RandomNumber2 INT NOT NULL,
+dater DATETIME NOT NULL, -- or can be DATE
+nxt_date DATETIME NOT NULL
+);
+
+--ALTER TABLE #abc
+--ADD dater VARCHAR;
+
+--UPDATE #abc SET dater = '1900-01-01'
+
+-- LOOP to update values
+
+DECLARE @i INT = 1;
+DECLARE @StartDate DATETIME = '2020-01-01';
+DECLARE @EndDate DATETIME = '2021-01-01';
+
+WHILE @i <= 100
+BEGIN
+	 INSERT INTO #abc (RandomText, RandomNumber1, RandomNumber2, dater, nxt_date)
+	 VALUES
+	 (
+	 LEFT(NEWID(),5),
+	 FLOOR(RAND()*100)+1,
+	 FLOOR(RAND()*100)+1,
+	 -- generate a random date between the two dates
+	 DATEADD(DAY, FLOOR(RAND()*DATEDIFF(DAY,@StartDate,@EndDate)),@StartDate),
+	 -- generate incremental date from StartDate
+	 DATEADD(DAY,@i,@StartDate)
+
+);
+
+SET @i=@i+1;
+END;
+
+----------------------------------------------------------------------------------
+
+-- create new table of years and join on row ID to #abc renamed as first_table
+
+DROP TABLE IF EXISTS #years;
+
+CREATE TABLE #years
+(
+ID INT IDENTITY(1,15) PRIMARY KEY, -- for each row increase amount by 15
+years INT NOT NULL
+);
+
+--ALTER TABLE #abc
+--ADD dater VARCHAR;
+
+--UPDATE #abc SET dater = '1900-01-01'
+
+DECLARE @ii INT = 1;
+DECLARE @StartYear INT = 95;
+--DECLARE @EndYear INT = '2021-01-01';
+
+WHILE @ii <= 10
+BEGIN
+	 INSERT INTO #years (years)
+	 VALUES
+	 (
+	 @StartYear+@ii
+
+);
+
+SET @ii=@ii+1;
+END;
+
+----------------------------------------------------------------------------------
+
+-- join #asbc (named first_table) onto #years
+-- name as CTEs
+WITH first_table AS (SELECT aa.ID, aa.RandomText, aa.dater FROM #abc aa),
+
+years AS (SELECT * FROM #years)
+
+-- join
+SELECT * FROM years yy
+LEFT JOIN first_table ft ON ft.ID = yy.ID
+
+------------------------------------------------------------------------------------
+
+--- window functions
+
+-- get a rank by date
+
+SELECT ID, RandomText, dater, RANK() OVER ( PARTITION BY dater ORDER BY dater DESC) AS DateRank from #abc ORDER BY dater
+
+-- get a cumulative sum of number of characters by years order
+SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater) ASC) AS TextLen, SUM(ID) OVER(ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_ID from #abc ORDER BY dater
+
+-- get a cumulative sum of number of characters by years, dates order
+SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater),dater ASC) AS TextLen, SUM(ID) OVER(ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_ID from #abc ORDER BY dater
+
+------------------------------------------------------------------------------------
+
+--- moving average
+
+SELECT
+    ID,
+    RandomText,
+    AVG(ID) OVER
+    (
+        ORDER BY ID
+        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS SevenIDAverage
+FROM #abc
+ORDER BY ID
+------------------------------------------------------------------------------------
+
+-- dynamically select
+
+DECLARE @TableName NVARCHAR(100) = '#abc';
+
+DECLARE @SQL NVARCHAR(MAX);
+
+SET @SQL =
+'SELECT TOP 10 *
+FROM ' + QUOTENAME(@TableName);
+
+EXEC sp_executesql @SQL;
+
+------------------------------------------------------------------------------------
+
+-- group by for summaries (without typing out all column names)
+
+select t.*, (case when ID > 50 AND ID <= 100 then 'High'
+                when ID  > 25 AND ID <= 50 then 'Med'
+                when ID > 0 AND ID <= 25 then 'Low'
+          end) as PRIORITY
+from #abc t;
+

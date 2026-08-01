@@ -1,0 +1,27 @@
+-- TEMPORARY TABLE CREATION
+--IF OBJECT_ID('tempdb..TempTable') IS NOT NULL DROP TABLE TempTable;
+DROP TABLE IF EXISTS TempTable;
+--DROP TABLE TempTable; -- Delete TempTable if it exists to avoid error on execution
+
+CREATE TEMPORARY TABLE TempTable(
+ID int NOT NULL,
+Number int DEFAULT 1, -- DEFAULT states what value to use if none exist
+NameChar CHAR(10)); -- assumes NULL if not specified);
+  
+INSERT INTO TempTable (ID, Number, NameChar)
+SELECT customer_id, amount, item
+FROM Orders
+ORDER BY 1 DESC;--customer_id DESC;
+
+-- if try to INSERT a not allowed value error occurs
+INSERT INTO TempTable (ID, NameChar)
+VALUES(1,3); -- this automatically adds Number field as 1 because DEFAULT specified
+
+-- if try to INSERT a not allowed value error occurs
+--INSERT INTO TempTable (ID, Number, NameChar)
+--VALUES(NULL,2,3);
+
+-- view everything in created table
+SELECT *
+FROM TempTable
+-- END OF TEMPORARY TABLE

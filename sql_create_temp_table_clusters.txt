@@ -1,0 +1,30 @@
+DROP TABLE IF EXISTS transactions;
+
+-- Creating a sample transactions table
+CREATE TEMPORARY TABLE transactions (
+    customer_id INT,
+    transaction_amount DECIMAL(10, 2)
+);
+
+-- Inserting sample data into the transactions table
+
+INSERT INTO transactions (customer_id, transaction_amount)
+SELECT c.customer_id, o.amount
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id;
+
+INSERT INTO transactions (customer_id, transaction_amount) VALUES
+(15, 50.00);
+
+
+-- Create n_clusters based on transaction amount ranges
+SELECT customer_id,
+       transaction_amount,
+       CASE
+           WHEN transaction_amount <= 300 THEN 'Cluster 1: Low Spenders'
+           WHEN transaction_amount <= 1000 THEN 'Cluster 2: Medium Spenders'
+           ELSE 'Cluster 3: High Spenders'
+       END AS cluster
+FROM transactions;
+
