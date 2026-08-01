@@ -1,3 +1,4 @@
+
 ----------------------------------------------------------------------------------
 -- create new table #abc
 DROP TABLE IF EXISTS #abc;
@@ -99,6 +100,16 @@ SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater) AS
 
 -- get a cumulative sum of number of characters by years, dates order
 SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater),dater ASC) AS TextLen, SUM(ID) OVER(ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_ID from #abc ORDER BY dater
+
+------------------------
+SELECT*,
+LEAD(ID,1,0) OVER(ORDER BY ID) as next_ID, -- window function to show next entry
+LAG(ID,1,0) OVER(ORDER BY ID) as prv_ID, -- window function to show previous entry
+
+-- partition by and over to calculate based on table sets (faster calculations)
+COUNT(ID) OVER (PARTITION BY dater) as count_per_ID -- can also have empty over clause
+
+FROM #abc
 
 ------------------------------------------------------------------------------------
 
