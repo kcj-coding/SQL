@@ -91,6 +91,10 @@ LEFT JOIN first_table ft ON ft.ID = yy.ID
 
 --- window functions
 
+-- row_number (rank)
+
+SELECT ID, RandomText, dater, ROW_NUMBER() OVER ( PARTITION BY dater ORDER BY dater DESC) AS DateRank from #abc ORDER BY dater
+
 -- get a rank by date
 
 SELECT ID, RandomText, dater, RANK() OVER ( PARTITION BY dater ORDER BY dater DESC) AS DateRank from #abc ORDER BY dater
@@ -102,9 +106,9 @@ SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater) AS
 SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater),dater ASC) AS TextLen, SUM(ID) OVER(ORDER BY ID ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS c_ID from #abc ORDER BY dater
 
 ------------------------
-SELECT*,
-LEAD(ID,1,0) OVER(ORDER BY ID) as next_ID, -- window function to show next entry
-LAG(ID,1,0) OVER(ORDER BY ID) as prv_ID, -- window function to show previous entry
+SELECT *,
+LEAD(ID,1,0) OVER(ORDER BY ID) as next_ID, -- window function to show next entry, default value is 0
+LAG(ID,1,0) OVER(ORDER BY ID) as prv_ID, -- window function to show previous entry, default value is 0
 
 -- partition by and over to calculate based on table sets (faster calculations)
 COUNT(ID) OVER (PARTITION BY dater) as count_per_ID -- can also have empty over clause
@@ -127,6 +131,19 @@ FROM #abc
 ORDER BY ID
 ------------------------------------------------------------------------------------
 
+-- aggregate function of group by
+
+SELECT
+    ID,
+    RandomText,
+    AVG(ID) avg
+FROM #abc
+GROUP BY ID,RandomText
+HAVING ID >= 1
+ORDER BY ID
+
+------------------------------------------------------------------------------------
+
 -- dynamically select
 
 DECLARE @TableName NVARCHAR(100) = '#abc';
@@ -141,11 +158,17 @@ EXEC sp_executesql @SQL;
 
 ------------------------------------------------------------------------------------
 
--- group by for summaries (without typing out all column names)
+-- case when for summaries (without typing out all column names)
 
 select t.*, (case when ID > 50 AND ID <= 100 then 'High'
                 when ID  > 25 AND ID <= 50 then 'Med'
                 when ID > 0 AND ID <= 25 then 'Low'
           end) as PRIORITY
 from #abc t;
+
+select *, (case when ID > 50 AND ID <= 100 then 'High'
+                when ID  > 25 AND ID <= 50 then 'Med'
+                when ID > 0 AND ID <= 25 then 'Low'
+          end) as PRIORITY
+from #abc
 
