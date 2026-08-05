@@ -108,7 +108,9 @@ SELECT ID, RandomText, dater, SUM(LEN(RandomText)) OVER (ORDER BY YEAR(dater),da
 ------------------------
 SELECT *,
 LEAD(ID,1,0) OVER(ORDER BY ID) as next_ID, -- window function to show next entry, default value is 0
+LEAD(ID,1,0) OVER(PARTITION BY dater ORDER BY ID) as next_ID, -- window function to show next entry, default value is 0, avoids duplicates by dater
 LAG(ID,1,0) OVER(ORDER BY ID) as prv_ID, -- window function to show previous entry, default value is 0
+LAG(ID,1,0) OVER(PARTITION BY dater ORDER BY ID) as prv_ID, -- window function to show previous entry, default value is 0, avoids duplicates by dater
 
 -- partition by and over to calculate based on table sets (faster calculations)
 COUNT(ID) OVER (PARTITION BY dater) as count_per_ID -- can also have empty over clause
@@ -172,3 +174,17 @@ select *, (case when ID > 50 AND ID <= 100 then 'High'
           end) as PRIORITY
 from #abc
 
+------------------------------------------------------------------------------------
+
+-- get latest record by xyz row_number() or rank()
+
+select *
+from (
+select *, row_number() over (partition by ID order by dater desc) as rn from #abc) s
+where rn = 1
+
+------------------------------------------------------------------------------------
+
+-- get ID from #abc that does not exist in #years
+
+select ID from #abc a where not exists (select 1 from #years y where y.id = a.id)
