@@ -181,10 +181,45 @@ from #abc
 select *
 from (
 select *, row_number() over (partition by ID order by dater desc) as rn from #abc) s
-where rn = 1
+where rn = 1;
+
+-- or
+
+with cte_table as ( select *
+from (
+select *, row_number() over (partition by ID order by dater desc) as rn from #abc) s)
+
+select * from cte_table
+where rn = 1 -- or 2,3 for 2nd, 3rd etc
+
 
 ------------------------------------------------------------------------------------
 
 -- get ID from #abc that does not exist in #years
 
 select ID from #abc a where not exists (select 1 from #years y where y.id = a.id)
+
+------------------------------------------------------------------------------------
+
+-- find duplicate records by one column
+
+select ID, COUNT(*) from #abc group by ID having COUNT(*) > 1;
+
+-- find duplicate rows for all columns
+
+with dupe_cte_table as ( select *
+from (
+select *, row_number() over (partition by ID order by dater desc) as rn from #abc) s)
+
+select * from dupe_cte_table
+where rn > 1 
+
+------------------------------------------------------------------------------------
+
+/* to check sql queries
+review explain or execution plan
+filter data early
+reduce unnecessary joins
+check if indexes exist on join and filter columns
+benchmark performance before and after changes e.g. runtime
+*/
